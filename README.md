@@ -112,9 +112,14 @@ ADD COLUMN IF NOT EXISTS user_id UUID;
 
 ## Screenshots
 
-[Add screenshot of the main dashboard here]
+### Auth Page
+![Signup Page](screenshots/signup.jpeg)
 
-[Add screenshot of the post creation flow here]
+### Post Creation
+![Post Creation](screenshots/posting.jpeg)
+
+### Post Feed
+![Uploaded Posts Feed](screenshots/uploaded.jpeg)
 
 ## API Endpoints
 
