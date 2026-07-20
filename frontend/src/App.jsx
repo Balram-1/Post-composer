@@ -29,6 +29,9 @@ function App() {
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [editId, setEditId] = useState(null);
+  const [filterPlatform, setFilterPlatform] = useState("All");
+  const [filterStatus, setFilterStatus] = useState("All");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -87,8 +90,10 @@ function App() {
     setMessage(null);
 
     try {
-      const response = await fetch(API_URL, {
-        method: "POST",
+      const url = editId ? `${API_URL}/${editId}` : API_URL;
+      const method = editId ? "PUT" : "POST";
+      const response = await fetch(url, {
+        method,
         headers: authHeaders(),
         body: JSON.stringify({ title, content, platform, status: status.toLowerCase(), media_url: mediaUrl }),
       });
@@ -98,10 +103,11 @@ function App() {
         throw new Error(errorData.error || "Something went wrong");
       }
 
-      setMessage({ type: "success", text: `Post saved as ${status}!` });
+      setMessage({ type: "success", text: editId ? "Post updated!" : `Post saved as ${status}!` });
       setTitle("");
       setContent("");
       setMediaUrl("");
+      setEditId(null);
       fetchPosts();
     } catch (error) {
       setMessage({ type: "error", text: error.message });
@@ -125,6 +131,16 @@ function App() {
     } finally {
       setDeletingId(null);
     }
+  }
+
+  function handleEdit(post) {
+    setEditId(post.id);
+    setTitle(post.title);
+    setContent(post.content);
+    setPlatform(post.platform);
+    setStatus(post.status.charAt(0).toUpperCase() + post.status.slice(1));
+    setMediaUrl(post.media_url || "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function handleLogout() {
@@ -170,6 +186,12 @@ function App() {
   const userEmail = session.user.email;
   const username = session.user.user_metadata?.username || userEmail.split("@")[0];
   const charLimitExceeded = content.length > currentPlatform.limit;
+
+  const filteredPosts = posts.filter(post => {
+    const matchPlatform = filterPlatform === "All" || post.platform === filterPlatform;
+    const matchStatus = filterStatus === "All" || (post.status || 'published').toLowerCase() === filterStatus.toLowerCase();
+    return matchPlatform && matchStatus;
+  });
 
   return (
     <div className="app">
@@ -281,6 +303,12 @@ function App() {
                   {content.length} / {currentPlatform.limit.toLocaleString()}
                 </span>
               </div>
+              <div className="progress-bar-container">
+                <div 
+                  className={`progress-bar ${content.length > currentPlatform.limit ? 'danger' : content.length > currentPlatform.limit * 0.8 ? 'warning' : 'safe'}`}
+                  style={{ width: `${Math.min(100, (content.length / currentPlatform.limit) * 100)}%` }}
+                ></div>
+              </div>
               <textarea
                 id="content"
                 placeholder="What's on your mind? Write your post content here..."
@@ -311,40 +339,69 @@ function App() {
               )}
             </div>
 
-            <button
-              type="submit"
-              className="submit-btn"
-              disabled={isSaving || charLimitExceeded}
-              style={{ background: currentPlatform.color }}
-            >
-              {isSaving ? (
-                <>
-                  <span className="spinner"></span>
-                  Saving...
-                </>
-              ) : (
-                <>Save as {status}</>
+            <div className="submit-actions">
+              <button
+                type="submit"
+                className="submit-btn"
+                disabled={isSaving || charLimitExceeded}
+                style={{ background: currentPlatform.color }}
+              >
+                {isSaving ? (
+                  <>
+                    <span className="spinner"></span>
+                    Saving...
+                  </>
+                ) : (
+                  <>{editId ? "Update Post" : `Save as ${status}`}</>
+                )}
+              </button>
+              {editId && (
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={() => {
+                    setEditId(null);
+                    setTitle("");
+                    setContent("");
+                    setMediaUrl("");
+                  }}
+                >
+                  Cancel Edit
+                </button>
               )}
-            </button>
+            </div>
           </form>
         </section>
 
         {/* Posts Feed */}
         <section className="feed-section">
-          <div className="section-header">
-            <h2>Your Posts</h2>
-            <span className="post-count-badge">{posts.length} saved</span>
+          <div className="section-header feed-header">
+            <div>
+              <h2>Your Posts</h2>
+              <span className="post-count-badge">{filteredPosts.length} saved</span>
+            </div>
+            
+            <div className="feed-filters">
+              <select value={filterPlatform} onChange={e => setFilterPlatform(e.target.value)} className="filter-select">
+                <option value="All">All Platforms</option>
+                {Object.keys(PLATFORMS).map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="filter-select">
+                <option value="All">All Statuses</option>
+                {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
           </div>
 
-          {posts.length === 0 ? (
+          {filteredPosts.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">📝</div>
-              <h3>No posts yet</h3>
-              <p>Create your first post above and it will appear here</p>
+              <h3>No posts found</h3>
+              <p>No posts match your filters or you haven't created any yet.</p>
             </div>
           ) : (
             <div className="posts-grid">
-              {posts.map((post) => {
+              {filteredPosts.map((post) => {
                 const p = PLATFORMS[post.platform] || PLATFORMS.X;
                 return (
                   <article key={post.id} className="post-card">
@@ -371,6 +428,9 @@ function App() {
                       )}
 
                       <div className="card-actions">
+                        <button className="edit-btn" onClick={() => handleEdit(post)}>
+                          Edit
+                        </button>
                         <button
                           className="delete-btn"
                           onClick={() => handleDelete(post.id)}

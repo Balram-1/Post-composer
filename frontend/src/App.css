@@ -832,3 +832,96 @@ body {
     padding: 24px;
   }
 }
+
+
+/* ========== New UI Addons ========== */
+
+/* Progress Bar */
+.progress-bar-container {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.progress-bar {
+  height: 100%;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+.progress-bar.safe {
+  background-color: var(--success);
+}
+.progress-bar.warning {
+  background-color: #f59e0b; /* Amber */
+}
+.progress-bar.danger {
+  background-color: var(--error);
+}
+
+/* Feed Filters */
+.feed-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.feed-filters {
+  display: flex;
+  gap: 12px;
+}
+.filter-select {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.filter-select:hover, .filter-select:focus {
+  border-color: var(--accent);
+}
+.filter-select option {
+  background: var(--bg-primary);
+}
+
+/* Edit and Cancel Buttons */
+.edit-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.edit-btn:hover {
+  color: var(--accent);
+  background: var(--accent-glow);
+}
+.submit-actions {
+  display: flex;
+  gap: 12px;
+}
+.cancel-btn {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}

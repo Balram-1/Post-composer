@@ -103,6 +103,29 @@ app.delete("/api/posts/:id", async (req, res) => {
   }
 });
 
+app.put("/api/posts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, content, platform, status, media_url } = req.body;
+
+    if (!title || !content || !platform) {
+      return res.status(400).json({ error: "Title, content, and platform are required" });
+    }
+
+    const { data, error } = await req.supabase
+      .from("posts")
+      .update({ title, content, platform, status: status || 'draft', media_url: media_url || null })
+      .eq("id", id)
+      .select();
+
+    if (error) throw error;
+    res.json(data[0]);
+  } catch (error) {
+    console.error("Error updating post:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`✅ Backend server is running at http://localhost:${PORT}`);
 });
