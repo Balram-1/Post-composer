@@ -1,0 +1,8 @@
+# Backend — Express + Supabase  
+# Ignore node_modules and the .env file (contains secrets)
+backend/node_modules/
+backend/.env
+
+# Frontend — React + Vite
+frontend/node_modules/
+frontend/dist/
